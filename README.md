@@ -1,5 +1,7 @@
 
-# Go Network Analyzer 🌐
+# GoTrace, a Go Network Analyzer , outil de diagnostic pour la latence et la perte de paquets 🌐
+
+Méta-description : "An open-source CLI tool developed in Go to analyze network performance. Measure latency, packet loss, and trace data paths with this network analyzer."
 
 Ce projet est un outil en ligne de commande développé en Go pour analyser la connectivité et les performances d'un réseau. Il combine les fonctionnalités de traceroute et de ping pour fournir une vue complète de la latence, de la perte de paquets et de l'itinéraire des données vers une destination donnée.
 
