@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/net/icmp"
@@ -42,18 +43,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Phase 1: Découverte des routeurs vers %s (%s)\n", host, ipAddr.String())
-	fmt.Println("---------------------------------------")
+	const totalWidth = 69
+	centeredString := fmt.Sprintf(" ----- Tracing routers to %s (%s) ----- ", host, ipAddr.String())
+	stringLength := len(centeredString)
+	leftPadding := (totalWidth - stringLength) / 2
+	spaces := strings.Repeat(" ", leftPadding)
+	fmt.Printf("%s%s\n", spaces, centeredString)
 
 	routerList := traceroute(ipAddr)
 
-	fmt.Println("\n---------------------------------------")
-	fmt.Println("Phase 2: Mesure de la latence et de la perte de paquets pour chaque routeur")
-	fmt.Println("---------------------------------------")
-
 	statsList := make([]RouterStats, len(routerList))
 	for i, routerIPAddr := range routerList {
-		fmt.Printf("Mesure sur le routeur %d: %s\n", i+1, routerIPAddr.String())
+		// fmt.Printf("Measuring on router %d: %s\n", i+1, routerIPAddr.String())
 		latencies, loss := ping(routerIPAddr.IP, numPackets)
 		statsList[i] = RouterStats{
 			IP:         routerIPAddr.String(),
@@ -62,9 +63,6 @@ func main() {
 		}
 	}
 
-	fmt.Println("\n---------------------------------------")
-	fmt.Println("Phase 3: Affichage des résultats")
-	fmt.Println("---------------------------------------")
 	displayResults(statsList)
 }
 
@@ -116,7 +114,7 @@ func traceroute(dest *net.IPAddr) []*net.IPAddr {
 			reached = true
 		}
 
-		fmt.Printf("%2d: %s\n", ttl, hopIP.String())
+		// fmt.Printf("%2d: %s\n", ttl, hopIP.String())
 		routers = append(routers, hopIP)
 	}
 	return routers
@@ -172,10 +170,13 @@ func ping(dest net.IP, count int) ([]time.Duration, float64) {
 	return latencies, loss
 }
 
-// displayResults affiche les statistiques de chaque routeur avec un formatage amélioré.
+// displayResults displays the statistics for each router with improved formatting.
 func displayResults(statsList []RouterStats) {
-	// Nouveaux formats pour un meilleur alignement
-	fmt.Printf("%-5s | %-16s | %-12s | %-12s | %-10s\n", "Hop", "Adresse IP", "Moyenne (µs)", "Écart-type (µs)", "Perte (%)")
+	format1 := "%-5s | %-16s | %-12s | %-12s | %-10s\n"
+	format2 := "%-5d | %-16s | %-12.2f | %-12.2f | %-10.2f\n"
+
+	// New formats for better alignment
+	fmt.Printf(format1, "Hop", "IP Address", "Avg (µs)", "Std Dev (µs)", "Loss (%)")
 	fmt.Println("---------------------------------------------------------------------")
 
 	for i, stats := range statsList {
@@ -200,8 +201,8 @@ func displayResults(statsList []RouterStats) {
 		variance := sumSquares / float64(len(stats.Latencies))
 		stdDev := time.Duration(math.Sqrt(variance))
 
-		// Affichage avec le nouveau formatage pour les microsecondes
-		fmt.Printf("%-5d | %-16s | %-12.2f | %-15.2f | %-10.2f\n",
+		// Display with new formatting for microseconds
+		fmt.Printf(format2,
 			i+1,
 			stats.IP,
 			float64(avgRTT.Microseconds()),

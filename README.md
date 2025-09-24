@@ -62,25 +62,8 @@ sudo go run main.go google.com 10
 Voici à quoi ressemble le résultat final de l'analyse :
 
 ```Bash
-Phase 1: Découverte des routeurs vers google.com (142.250.75.14)
----------------------------------------
- 1: 192.168.1.1
- 2: 10.12.0.1
- 3: 172.16.25.1
-...
-10: 142.250.75.14
-
----------------------------------------
-Phase 2: Mesure de la latence et de la perte de paquets pour chaque routeur
----------------------------------------
-Mesure sur le routeur 1: 192.168.1.1
-...
-Mesure sur le routeur 10: 142.250.75.14
-
----------------------------------------
-Phase 3: Affichage des résultats
----------------------------------------
-Hop   | Adresse IP       | Moyenne (µs) | Écart-type (µs) | Perte (%)
+   ----- Tracing routers to www.google.com (142.250.178.132) ----- 
+Hop   | IP Address       | Avg (µs)     | Std Dev (µs)    | Loss (%)  
 ---------------------------------------------------------------------
 1     | 192.168.1.1      | 528.25       | 104.78          | 0.00
 2     | 10.12.0.1        | 1256.74      | 258.91          | 0.00
