@@ -6,6 +6,10 @@ package main
 // Combine traceroute and ping functionalities to analyze network performance.
 // Measure latency, packet loss, and trace data paths.
 //
+// WARNING :
+// Raw ICMP sockets are not supported on native Windows Go environments due to
+// OS security restrictions.
+//
 // Usage: sudo go run main.go <hostname or IP> <number of packets> [delay in µs]
 // Example: sudo go run main.go example.com 10 500
 // Note: Requires elevated privileges to send ICMP packets.
