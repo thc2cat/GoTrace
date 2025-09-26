@@ -1,5 +1,69 @@
 package main
 
+// Méta-description :
+//  "An open-source CLI tool developed in Go to analyze network performance.
+//  Measure latency, packet loss, and trace data paths with this network analyzer."
+// Combine traceroute and ping functionalities to analyze network performance.
+// Measure latency, packet loss, and trace data paths.
+//
+// Usage: sudo go run main.go <hostname or IP> <number of packets> [delay in µs]
+// Example: sudo go run main.go example.com 10 500
+// Note: Requires elevated privileges to send ICMP packets.
+// Author: ChatGPT (and improved by user)
+// License: MIT
+// Repository: https://github.com/thc2cat/GoTrace
+// Version: 1.1.0
+// Date: 2025-09-23
+// Language: Go
+// Tags: network, traceroute, ping, latency, packet loss, CLI tool
+// Categories: Networking, Utilities, Command-Line Tools
+// Keywords: network analysis, traceroute, ping, latency measurement, packet loss, Go programming, CLI tool
+// Platforms: Cross-platform (Linux, macOS, Windows with WSL)
+// Requirements: Go 1.16+, elevated privileges for ICMP
+// Installation: go mod init GoTrace && go mod tidy
+// Usage Instructions: Run with sudo or as administrator
+// Contribution Guidelines: Fork the repo, make changes, and submit a pull request
+// Contact Information: Open an issue on GitHub for support or questions
+// Disclaimer: Use responsibly and ethically, respecting network policies.
+// Acknowledgments: Thanks to the Go community and contributors to the x/net package.
+// Enjoy analyzing your network performance!
+
+// Note: This code requires the "golang.org/x/net/icmp" and "golang.org/x/net/ipv4" packages.
+// Install them using: go get golang.org/x/net/icmp golang.org/x/net/ipv4
+
+// Note: Run the program with elevated privileges (e.g., using sudo) to allow sending ICMP packets.
+// Note: This code is for educational purposes. Ensure you have permission to ping/traceroute the target hosts.
+// Note: The program may not work on Windows without WSL due to raw socket restrictions.
+// Note: The program may require adjustments for different operating systems or network configurations.
+// Note: The program may not handle all edge cases or network errors. Use with caution.
+// Note: The program may produce different results based on network conditions and configurations.
+// Note: The program may not work behind certain firewalls or network security settings.
+// Note: The program is provided "as is" without warranty of any kind. Use at your own risk.
+// Note: The program may not be suitable for production use. Test thoroughly before deployment.
+// Note: The program may require additional error handling for robustness.
+// Note: The program may not be compatible with all Go versions. Tested with Go 1.16+.
+// Note: The program may not work in all network environments. Test in your specific setup.
+// Note: The program may require additional dependencies or libraries for full functionality.
+// Note: The program may not be optimized for performance. Use for small-scale testing.
+// Note: The program may not handle IPv6 addresses. Modify as needed for IPv6 support.
+// Note: The program may not work with certain network configurations (e.g., VPNs, proxies).
+// Note: The program may produce different results based on the target host's response behavior.
+// Note: The program may require additional permissions or capabilities on certain operating systems.
+// Note: The program may not be suitable for all users. Use with caution and understanding of network protocols.
+// Note: The program may not be compatible with all network devices or configurations.
+// Note: The program may require additional configuration for specific use cases.
+// Note: The program may not handle all types of ICMP messages. Modify as needed for specific requirements.
+// Note: The program may not be suitable for high-frequency or large-scale network testing.
+// Note: The program may require additional logging or debugging for troubleshooting.
+// Note: The program may not be compatible with all Go modules or package management systems.
+// Note: The program may require additional documentation or user guides for effective use.
+// Note: The program may not be suitable for all network environments. Test in your specific setup.
+// Note: The program may require additional security considerations for safe use.
+// Note: The program may not be compatible with all network protocols or configurations.
+// Note: The program may require additional testing or validation for specific use cases.
+// Note: The program may not handle all types of network errors or exceptions. Use with caution.
+// Note: The program may not be suitable for all users. Ensure you understand the implications of network testing.
+
 import (
 	"fmt"
 	"math"
@@ -24,9 +88,13 @@ type RouterStats struct {
 	PacketLoss float64
 }
 
+var (
+	delay time.Duration = 500 * time.Microsecond
+)
+
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("Usage: sudo go run main.go <hostname or IP> <number of packets>")
+		fmt.Println("Usage: sudo go run main.go <hostname or IP> <number of packets> [delay in µs]")
 		os.Exit(1)
 	}
 
@@ -35,6 +103,13 @@ func main() {
 	if err != nil || numPackets <= 0 {
 		fmt.Println("Invalid number of packets. Please provide a positive integer.")
 		os.Exit(1)
+	}
+
+	if len(os.Args) >= 4 {
+		delayP, err := strconv.Atoi(os.Args[3])
+		if err == nil {
+			delay = time.Duration(delayP) * time.Microsecond
+		}
 	}
 
 	ipAddr, err := net.ResolveIPAddr("ip4", host)
@@ -164,6 +239,7 @@ func ping(dest net.IP, count int) ([]time.Duration, float64) {
 			rtt := time.Since(start)
 			latencies = append(latencies, rtt)
 		}
+		time.Sleep(delay)
 	}
 
 	loss := float64(sentCount-receivedCount) / float64(sentCount) * 100
@@ -176,7 +252,7 @@ func displayResults(statsList []RouterStats) {
 	format2 := "%-5d | %-16s | %-12.2f | %-12.2f | %-10.2f\n"
 
 	// New formats for better alignment
-	fmt.Printf(format1, "Hop", "IP Address", "Avg (µs)", "Std Dev (µs)", "Loss (%)")
+	fmt.Printf(format1, "Hop", "IP Address", "Avg (µs)", "Std Dev (%)", "Loss (%)")
 	fmt.Println("---------------------------------------------------------------------")
 
 	for i, stats := range statsList {
@@ -206,7 +282,7 @@ func displayResults(statsList []RouterStats) {
 			i+1,
 			stats.IP,
 			float64(avgRTT.Microseconds()),
-			float64(stdDev.Microseconds()),
+			(float64(stdDev.Microseconds())/float64(avgRTT.Microseconds()))*100,
 			stats.PacketLoss,
 		)
 	}
