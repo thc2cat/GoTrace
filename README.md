@@ -1,67 +1,64 @@
+# GoTrace — a Go Network Analyzer, a diagnostic tool for latency and packet loss 🌐
 
-# GoTrace, a Go Network Analyzer , outil de diagnostic pour la latence et la perte de paquets 🌐
+Meta-description: "An open-source CLI tool developed in Go to analyze network performance. Measure latency, packet loss, and trace data paths with this network analyzer."
 
-Méta-description : "An open-source CLI tool developed in Go to analyze network performance. Measure latency, packet loss, and trace data paths with this network analyzer."
+This project is a command-line tool written in Go for analyzing network connectivity and performance. It combines traceroute and ping features to provide a complete view of latency, packet loss, and the path that data takes to a destination.
 
-Ce projet est un outil en ligne de commande développé en Go pour analyser la connectivité et les performances d'un réseau. Il combine les fonctionnalités de traceroute et de ping pour fournir une vue complète de la latence, de la perte de paquets et de l'itinéraire des données vers une destination donnée.
+![docs/GoTrace.png](docs/GoTrace.png)
 
-## Fonctionnalités 🛠️
+## Features 🛠️
 
-Le programme est structuré en trois phases distinctes pour une analyse détaillée :
+The program is organized into three distinct phases for detailed analysis:
 
-### Phase 1: Découverte des routeurs (Traceroute)
+### Phase 1: Router Discovery (Traceroute)
 
-Cette phase identifie tous les routeurs intermédiaires (les "sauts" ou "hops") entre votre machine et la destination finale. Elle utilise des paquets ICMP avec un Time-to-Live (TTL) incrémentiel pour cartographier l'itinéraire complet.
+This phase identifies intermediate routers (hops) between your machine and the final destination. It uses ICMP packets with an incremental Time-to-Live (TTL) to map the full route.
 
-### Phase 2: Mesure des performances (Ping)
+### Phase 2: Performance Measurement (Ping)
 
-Une fois l'itinéraire tracé, le programme envoie un nombre spécifié de paquets ICMP à chaque routeur de la liste. Il collecte des données de latence pour chaque saut, ce qui permet d'identifier les points de faiblesse ou les goulots d'étranglement sur le chemin.
+After the route is traced, the program sends a specified number of ICMP packets to each router in the list. It collects latency data for each hop, allowing you to pinpoint weak spots or bottlenecks along the path.
 
-### Phase 3: Affichage des statistiques
+### Phase 3: Statistics Display
 
-Les résultats sont présentés dans un tableau compact et facile à lire. Pour chaque routeur, l'outil affiche :
+Results are presented in a compact, easy-to-read table. For each router, the tool shows:
 
-L'adresse IP du routeur.
+- The router's IP address.
+- The average latency in microseconds (µs).
+- The latency standard deviation in microseconds (µs), indicating variability.
+- The packet loss percentage, a key indicator of connection reliability.
 
-La latence moyenne en microsecondes (µs).
+## Requirements 📋
 
-L'écart-type de la latence en microsecondes (µs), qui indique la variabilité des performances.
+- Go (version 1.18 or newer)
+- Administrator privileges (sudo on Linux/macOS) or equivalent on other systems, since the program requires access to raw ICMP sockets.
 
-Le pourcentage de perte de paquets, un indicateur clé de la fiabilité de la connexion.
+## Installation and Usage 🚀
 
-## Prérequis 📋
+Clone the repository:
 
-- Go (version 1.18 ou supérieure)
-
-- Privilèges d'administrateur (sudo sur Linux/macOS) ou équivalent sur d'autres systèmes, car le programme nécessite l'accès à des sockets ICMP bruts.
-
-## Installation et Utilisation 🚀
-
-Cloner le dépôt :
-
-```Bash
+```bash
 git clone https://github.com/votre_utilisateur/go-network-analyzer.git
 ```
 
-Lancer le programme :
-Exécutez l'application en spécifiant l'hôte cible (nom de domaine ou adresse IP) et le nombre de paquets à envoyer.
+Run the program:
+Execute the application by specifying the target host (domain name or IP) and the number of packets to send.
 
-```Bash
-sudo go run main.go <hostname_ou_ip> <nombre_de_paquets>
+```bash
+sudo go run main.go <hostname_or_ip> <number_of_packets> [delay_in_ms]
 ```
 
-Exemple :
-Pour analyser le chemin vers google.com en envoyant 10 paquets à chaque saut, utilisez la commande suivante :
+Example:
+To analyze the path to google.com by sending 10 packets to each hop, run:
 
-```Bash
+```bash
 sudo go run main.go google.com 10
 ```
 
-## Exemple de sortie 📊
+## Example Output 📊
 
-Voici à quoi ressemble le résultat final de l'analyse :
+Here is an example of the tool's final output:
 
-```Bash
+```bash
    ----- Tracing routers to www.google.com (142.250.178.132) ----- 
 Hop   | IP Address       | Avg (µs)     | Std Dev (µs)    | Loss (%)  
 ---------------------------------------------------------------------
@@ -71,3 +68,14 @@ Hop   | IP Address       | Avg (µs)     | Std Dev (µs)    | Loss (%)
 ...
 10    | 142.250.75.14    | 25687.55     | 1205.80         | 0.00
 ```
+
+## Notes and Caveats
+
+- The program may require elevated privileges to send ICMP packets.
+- Raw ICMP sockets are restricted on some platforms (e.g., native Windows). Use WSL on Windows or adapt the code to use platform-specific ICMP APIs for native Windows support.
+- This tool is provided for educational and diagnostic purposes. Ensure you have permission to probe target hosts.
+- Results may vary depending on network conditions, firewalls, or other security settings.
+
+## Acknowledgments
+
+Thanks to the Go community and contributors to the x/net package.
