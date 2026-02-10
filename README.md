@@ -23,8 +23,8 @@ After the route is traced, the program sends a specified number of ICMP packets 
 Results are presented in a compact, easy-to-read table. For each router, the tool shows:
 
 - The router's IP address.
-- The average latency in microseconds (µs).
-- The latency standard deviation in microseconds (µs), indicating variability.
+- The median latency in microseconds (µs) (P50).
+- The 90th percentile latency in microseconds (µs) (P90), useful to assess worst-case latency.
 - The packet loss percentage, a key indicator of connection reliability.
 
 ## Requirements 📋
@@ -59,14 +59,14 @@ sudo go run main.go google.com 10
 Here is an example of the tool's final output:
 
 ```bash
-   ----- Tracing routers to www.google.com (142.250.178.132) ----- 
-Hop   | IP Address       | Avg (µs)     | Std Dev (µs)    | Loss (%)  
+   ----- Tracing routers to www.google.com (172.217.20.36) ----- 
+Hop   | IP Address     | P50 (µs) | P90 (µs) | Loss (%)  
 ---------------------------------------------------------------------
-1     | 192.168.1.1      | 528.25       | 104.78          | 0.00
-2     | 10.12.0.1        | 1256.74      | 258.91          | 0.00
-3     | 172.16.25.1      | 2530.12      | 450.32          | 0.00
-...
-10    | 142.250.75.14    | 25687.55     | 1205.80         | 0.00
+...  
+5     | 192.178.70.144 | 68       | 1996     | 0.00      
+6     | 72.14.236.91   | 2825     | 3075     | 0.00      
+7     | 142.251.253.35 | 2092     | 2215     | 0.00      
+8     | 172.217.20.36  | 2030     | 2173     | 0.00      
 ```
 
 ## Notes and Caveats

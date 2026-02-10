@@ -25,9 +25,9 @@ Les résultats sont présentés dans un tableau compact et facile à lire. Pour 
 
 L'adresse IP du routeur.
 
-La latence moyenne en microsecondes (µs).
+La médiane (P50) de la latence en microsecondes (µs), qui représente la valeur centrale.
 
-L'écart-type de la latence en microsecondes (µs), qui indique la variabilité des performances.
+Le 90ème percentile (P90) de la latence en microsecondes (µs), utile pour évaluer les pires cas.
 
 Le pourcentage de perte de paquets, un indicateur clé de la fiabilité de la connexion.
 
@@ -64,12 +64,13 @@ sudo go run main.go google.com 10
 Voici à quoi ressemble le résultat final de l'analyse :
 
 ```Bash
-   ----- Tracing routers to www.google.com (142.250.178.132) ----- 
-Hop   | IP Address       | Avg (µs)     | Std Dev (µs)    | Loss (%)  
+    ----- Tracing routers to www.google.com (172.217.20.36) ----- 
+Hop   | IP Address     | P50 (µs) | P90 (µs) | Loss (%)  
 ---------------------------------------------------------------------
-1     | 192.168.1.1      | 528.25       | 104.78          | 0.00
-2     | 10.12.0.1        | 1256.74      | 258.91          | 0.00
-3     | 172.16.25.1      | 2530.12      | 450.32          | 0.00
-...
-10    | 142.250.75.14    | 25687.55     | 1205.80         | 0.00
+...  
+5     | 192.178.70.144 | 68       | 1996     | 0.00      
+6     | 72.14.236.91   | 2825     | 3075     | 0.00      
+7     | 142.251.253.35 | 2092     | 2215     | 0.00      
+8     | 172.217.20.36  | 2030     | 2173     | 0.00      
+
 ```

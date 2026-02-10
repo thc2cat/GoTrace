@@ -73,6 +73,9 @@ import (
 	"math"
 	"net"
 	"os"
+	"runtime"
+	"runtime/debug"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -97,6 +100,7 @@ var (
 )
 
 func main() {
+
 	if len(os.Args) < 3 {
 		fmt.Println("Usage: sudo go run main.go <hostname or IP> <number of packets> [delay in µs]")
 		os.Exit(1)
@@ -132,6 +136,11 @@ func main() {
 	routerList := traceroute(ipAddr)
 
 	statsList := make([]RouterStats, len(routerList))
+
+	runtime.GC()
+	debug.SetGCPercent(-1)
+	runtime.LockOSThread()
+
 	for i, routerIPAddr := range routerList {
 		// fmt.Printf("Measuring on router %d: %s\n", i+1, routerIPAddr.String())
 		latencies, loss := ping(routerIPAddr.IP, numPackets)
@@ -253,10 +262,10 @@ func ping(dest net.IP, count int) ([]time.Duration, float64) {
 // displayResults displays the statistics for each router with improved formatting.
 func displayResults(statsList []RouterStats) {
 	format1 := "%-5s | %-14s | %-8s | %-8s | %-10s\n"
-	format2 := "%-5d | %-14s | %-8.f | %-8.f | %-10.2f\n"
+	format2 := "%-5d | %-14s | %-8.0f | %-8.0f | %-10.2f\n"
 
-	// New formats for better alignment
-	fmt.Printf(format1, "Hop", "IP Address", "Avg (µs)", "σ (µs)", "Loss (%)")
+	// Header: P50 (median) and P90
+	fmt.Printf(format1, "Hop", "IP Address", "P50 (µs)", "P90 (µs)", "Loss (%)")
 	fmt.Println("---------------------------------------------------------------------")
 
 	for i, stats := range statsList {
@@ -265,30 +274,45 @@ func displayResults(statsList []RouterStats) {
 			continue
 		}
 
-		// Calcul de la moyenne
-		var totalRTT time.Duration
-		for _, rtt := range stats.Latencies {
-			totalRTT += rtt
-		}
-		avgRTT := totalRTT / time.Duration(len(stats.Latencies))
+		p50 := percentile(stats.Latencies, 50)
+		p90 := percentile(stats.Latencies, 90)
 
-		// Calcul de l'écart-type
-		var sumSquares float64
-		for _, rtt := range stats.Latencies {
-			diff := float64(rtt - avgRTT)
-			sumSquares += diff * diff
-		}
-		variance := sumSquares / float64(len(stats.Latencies))
-		stdDev := time.Duration(math.Sqrt(variance))
-
-		// Display with new formatting for microseconds
 		fmt.Printf(format2,
 			i+1,
 			stats.IP,
-			float64(avgRTT.Microseconds()),
-			// (float64(stdDev.Microseconds())/float64(avgRTT.Microseconds()))*100,
-			float64(stdDev.Microseconds()),
+			float64(p50.Microseconds()),
+			float64(p90.Microseconds()),
 			stats.PacketLoss,
 		)
 	}
+}
+
+// percentile calcule le percentile 'p' (ex: 50 pour médiane, 90 pour P90)
+// en utilisant l'interpolation linéaire sur les valeurs en microsecondes.
+func percentile(durs []time.Duration, p float64) time.Duration {
+	n := len(durs)
+	if n == 0 {
+		return 0
+	}
+
+	vals := make([]float64, n)
+	for i, d := range durs {
+		vals[i] = float64(d.Microseconds())
+	}
+	sort.Float64s(vals)
+
+	if n == 1 {
+		return time.Duration(vals[0]) * time.Microsecond
+	}
+
+	// position sur une échelle [0, n-1]
+	r := p / 100 * float64(n-1)
+	lo := int(math.Floor(r))
+	hi := int(math.Ceil(r))
+	if lo == hi {
+		return time.Duration(vals[lo]) * time.Microsecond
+	}
+	frac := r - float64(lo)
+	v := vals[lo]*(1-frac) + vals[hi]*frac
+	return time.Duration(v) * time.Microsecond
 }
