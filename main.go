@@ -252,11 +252,11 @@ func ping(dest net.IP, count int) ([]time.Duration, float64) {
 
 // displayResults displays the statistics for each router with improved formatting.
 func displayResults(statsList []RouterStats) {
-	format1 := "%-5s | %-16s | %-12s | %-12s | %-10s\n"
-	format2 := "%-5d | %-16s | %-12.2f | %-12.2f | %-10.2f\n"
+	format1 := "%-5s | %-14s | %-8s | %-8s | %-10s\n"
+	format2 := "%-5d | %-14s | %-8.f | %-8.f | %-10.2f\n"
 
 	// New formats for better alignment
-	fmt.Printf(format1, "Hop", "IP Address", "Avg (µs)", "Std Dev (%)", "Loss (%)")
+	fmt.Printf(format1, "Hop", "IP Address", "Avg (µs)", "σ (µs)", "Loss (%)")
 	fmt.Println("---------------------------------------------------------------------")
 
 	for i, stats := range statsList {
@@ -286,7 +286,8 @@ func displayResults(statsList []RouterStats) {
 			i+1,
 			stats.IP,
 			float64(avgRTT.Microseconds()),
-			(float64(stdDev.Microseconds())/float64(avgRTT.Microseconds()))*100,
+			// (float64(stdDev.Microseconds())/float64(avgRTT.Microseconds()))*100,
+			float64(stdDev.Microseconds()),
 			stats.PacketLoss,
 		)
 	}
